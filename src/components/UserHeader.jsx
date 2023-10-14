@@ -10,15 +10,26 @@ import {
 	Text,
 	VStack,
 	MenuItem,
+	useToast,
 } from "@chakra-ui/react";
 import { BsGithub, BsTwitter } from "react-icons/bs";
 import { CgMoreO } from "react-icons/cg";
 
 export const UserHeader = () => {
-  const copyURL = () => {
-    const currentURL = window.location.href;
-    console.log(currentURL)
-  }
+	const toast = useToast();
+	const copyURL = () => {
+		//copy url link
+		const currentURL = window.location.href;
+		navigator.clipboard.writeText(currentURL).then(() => {
+			toast({
+				title: "Copied.",
+				description: "user profile copied",
+				status: "success",
+				duration: 600,
+				isClosable: true,
+			});
+		});
+	};
 	return (
 		<VStack gap={4} alignItems={"start"}>
 			<Flex justifyContent={"space-between"} w={"full"}>
@@ -65,11 +76,32 @@ export const UserHeader = () => {
 							</MenuButton>
 							<Portal>
 								<MenuList bg={"gray.dark"}>
-									<MenuItem bg={"gray.dark"} onClick={copyURL}>copy profile</MenuItem>
+									<MenuItem bg={"gray.dark"} onClick={copyURL}>
+										copy profile
+									</MenuItem>
 								</MenuList>
 							</Portal>
 						</Menu>
 					</Box>
+				</Flex>
+			</Flex>
+			<Flex w={"full"}>
+				<Flex
+					flex={1}
+					borderBottom={"1.5px solid white"}
+					justifyContent={"center"}
+					pb={3}
+					cursor={"pointer"}>
+					<Text fontWeight={"bold"}>asks</Text>
+				</Flex>
+				<Flex
+					flex={1}
+					borderBottom={"1px solid gray"}
+					color={"gray.white"}
+					justifyContent={"center"}
+					pb={3}
+					cursor={"pointer"}>
+					<Text fontWeight={"bold"}>replies</Text>
 				</Flex>
 			</Flex>
 		</VStack>
