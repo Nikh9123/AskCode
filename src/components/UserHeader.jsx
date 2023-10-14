@@ -38,7 +38,11 @@ export const UserHeader = () => {
 						Nikhil Satyam
 					</Text>
 					<Flex alignItems={"center"} gap={2}>
-						<Text fontSize={"sm"}>nikhil9123</Text>
+						<Text fontSize={{
+                base:"xs",
+                md:"sm",
+                lg:"md",
+              }}>nikhil9123</Text>
 						<Text
 							fontSize={"xs"}
 							bg={"gray.dark"}
@@ -50,7 +54,12 @@ export const UserHeader = () => {
 					</Flex>
 				</Box>
 				<Box>
-					<Avatar size="xl" name="Nikhil Satyam" src="/zuck-avatar.png" />
+					<Avatar size={
+						{
+							base:"md",
+							md:"lg"
+						}
+					} name="Nikhil Satyam" src="/zuck-avatar.png" />
 				</Box>
 			</Flex>
 			<Text>
