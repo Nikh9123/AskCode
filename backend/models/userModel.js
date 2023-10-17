@@ -8,7 +8,6 @@ const userSchema = new mongoose.Schema(
 		name: {
 			type: String,
 			required: true,
-			validate: [validator.isAlpha, "Numbers are not allowed in name"],
 			maxLength: [20, "A user name must not be greater than 20 characters"],
 			minLength: [3, "A user name must have more or equal then 5 chars"],
 		},
@@ -50,10 +49,6 @@ const userSchema = new mongoose.Schema(
 		bio: {
 			type: String,
 			default: "",
-		},
-		createdAT: {
-			type: Date,
-			default: Date.now(),
 		},
 	},
 	{
