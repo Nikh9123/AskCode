@@ -32,6 +32,13 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			required: [true, "please enter your password again"],
 			minLength: [6, "passowrd must be greater than 6 characters"],
+			validate:{
+				validator : function(e)
+				{
+					return e == this.password
+				},
+				message:"your password and confirm password isn't same"
+			}
 		},
 		profilePic: {
 			type: String,
@@ -55,6 +62,8 @@ const userSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+
 
 const User = mongoose.model("User", userSchema);
 export default User ;
