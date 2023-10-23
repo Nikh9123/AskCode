@@ -37,7 +37,8 @@ const userSchema = new mongoose.Schema(
 				{
 					return e == this.password
 				},
-				message:"your password and confirm password isn't same"
+				message:"your password and confirm password isn't same",
+				select:false,
 			}
 		},
 		profilePic: {
@@ -57,13 +58,29 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			default: "",
 		},
+		passwordChangedAt: Date,
+		passwordResetToken: String,
+		passwordResetExpires: Date,
 	},
 	{
 		timestamps: true,
 	}
 );
 
+// this is a instance method and its available on all the documents of a certain collection
+// this middleware will run before saving the document to database and hash the password before saving it to database
+//this middleware will hash the password before saving it to the database
+userSchema.pre('save', async function (next) {
+  //ONLY RUN FUNCTION IF PASSWORD ACTUALLY MODIFIED
+  if (!this.isModified('password')) return next();
 
+  //HASH PASSWORD WITH COST
+  this.password = await bcrypt.hash(this.password, 14);
+
+  //DELETE PASSWORD CONFIRm
+  this.passwordConfirm = undefined;
+  next();
+});
 
 const User = mongoose.model("User", userSchema);
 export default User ;

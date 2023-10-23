@@ -4,10 +4,10 @@ import jwt from "jsonwebtoken";
 import ms from "ms";
 
 //CREATING JWT TOKEN FOR USER
-const signToken = (id) => 
-jwt.sign({ id }, process.env.JWT_TOKEN_SECRET, {
-	expiresIn: process.env.JWT_EXPIRE,
-});
+const signToken = (id) =>
+	jwt.sign({ id }, process.env.JWT_TOKEN_SECRET, {
+		expiresIn: process.env.JWT_EXPIRE,
+	});
 
 //SEND TOKEN TO BROWSER AND RESPONSE
 const sendTokenToRes = (user, statusCode, res) => {
@@ -35,15 +35,44 @@ const sendTokenToRes = (user, statusCode, res) => {
 	});
 };
 
-export const signUp = async (req, res) => {
+const signUp = async (req, res) => {
 	console.log(req.body);
-	const newUser = await User.create({
-		name: req.body.name,
-		username: req.body.username,
-		email: req.body.email,
-		password: req.body.password,
-		passwordConfirm: req.body.passwordConfirm,
-		bio: req.body.bio,
-	});
-	sendTokenToRes(newUser, 201, res);
+
+	try {
+		const { name, username, email, password, passwordConfirm, bio } = req.body;
+		const user = await User.findOne({ $or: [{ email }, { username }] });
+		if (!name || !username || !email || !password || !passwordConfirm) {
+			return res.status(400).json({
+				status: "fail",
+				message: "please fill all the fields",
+			});
+		}
+		if (user) {
+			return res.status(400).json({
+				status: "fail",
+				message:
+					"user already exists...! please try again with another email or username",
+			});
+		}
+
+		const newUser = await User.create({
+			name,
+			username,
+			email,
+			password,
+			passwordConfirm,
+			bio,
+		});
+
+		sendTokenToRes(newUser, 201, res);
+	} catch (err) {
+		res.status(500).json({
+			status: "error",
+			message: err.message,
+		});
+		console.log("error in signup controller", err.message);
+	}
 };
+
+
+export { signUp}
