@@ -33,8 +33,13 @@ const signUp = async (req, res) => {
 			passwordConfirm,
 			bio,
 		});
-    
-		sendTokenToRes(newUser, 201, "your account was successfully created...",res);
+
+		sendTokenToRes(
+			newUser,
+			201,
+			"your account was successfully created...",
+			res
+		);
 	} catch (err) {
 		res.status(500).json({
 			status: "error",
@@ -46,24 +51,23 @@ const signUp = async (req, res) => {
 
 const signIn = async (req, res) => {
 	try {
-		const { email, password } = req.body;
-		if (!email || !password) {
+		const { email, username, password } = req.body;
+		if (!email || !password || !username) {
 			res.status(400).json({
 				status: "fail",
 				message: "please provide email and password",
 			});
 		}
 		// 2) CHECK IF USER EXISTS
-		const user = await User.findOne({ email }).select('+password');
-		console.log("user  = ",user.password);
-		if (!user || !(await user.correctPassword(password, user.password)))
-		{
+		const user = await User.findOne({ email }).select("+password");
+		console.log("user  = ", user.password);
+		if (!user || !(await user.correctPassword(password, user.password))) {
 			res.status(401).json({
 				status: "fail",
 				message: "incorrect email or password",
 			});
 		}
-		sendTokenToRes(user, 200, "you are logged in",res);
+		sendTokenToRes(user, 200, "you are logged in", res);
 	} catch (err) {
 		console.log(err);
 		res.status(500).json({
@@ -72,4 +76,24 @@ const signIn = async (req, res) => {
 		});
 	}
 };
-export { signUp, signIn };
+
+const signOut = async (req, res) => {
+	try {
+		console.log("signout");
+		res.cookie('jwt', 'you are loggigng out', {
+			expires: new Date(Date.now() + 10 * 1000),
+			httpOnly: true,
+		});
+	
+		res.status(200).json({
+			status: 'success',
+		});
+	} catch (err) {
+		res.status(500).json({
+			status: "error",
+			message: "unable to sign out. please try again later.",
+		});
+	}
+};
+
+export { signUp, signIn, signOut };
