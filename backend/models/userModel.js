@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
 		},
 		passwordConfirm: {
 			type: String,
-			required: [true, "please enter your password again"],
+			// required: [true, "please enter your password again"],
 			minLength: [6, "passowrd must be greater than 6 characters"],
 			validate: {
 				validator: function (e) {

@@ -1,7 +1,3 @@
-import crypto from "crypto";
-import jwt from "jsonwebtoken";
-import ms from "ms";
-
 import User from "../models/UserModel.js";
 import { sendTokenToRes } from "../utils/helper/jwtToken.js";
 
@@ -80,13 +76,13 @@ const signIn = async (req, res) => {
 const signOut = async (req, res) => {
 	try {
 		console.log("signout");
-		res.cookie('jwt', 'you are loggigng out', {
+		res.cookie("jwt", "you are loggigng out", {
 			expires: new Date(Date.now() + 10 * 1000),
 			httpOnly: true,
 		});
-	
+
 		res.status(200).json({
-			status: 'success',
+			status: "success",
 		});
 	} catch (err) {
 		res.status(500).json({
@@ -96,4 +92,69 @@ const signOut = async (req, res) => {
 	}
 };
 
-export { signUp, signIn, signOut };
+const followUnFollow = async (req, res) => {
+	try {
+		console.log(req.params);
+		const { id } = req.params;
+
+		const userTOFollow = await User.findById(id);
+		const currentUser = await User.findById(req.user._id);
+
+		if (!userTOFollow || !currentUser) {
+			return res.status(404).json({
+				status: "fail",
+				message: "User not found",
+			});
+		}
+
+		// Check if the user is already following the user to follow
+		const isFollowing = currentUser.following.includes(id);
+
+		if (isFollowing) {
+			// Unfollow: Remove id from following array of currentUser
+			currentUser.following = currentUser.following.filter(
+				(userId) => userId.toString() !== id
+			);
+
+			// Remove req.user._id from followers array of userTOFollow
+			userTOFollow.followers = userTOFollow.followers.filter(
+				(followerId) => followerId.toString() !== req.user._id
+			);
+
+			// Save changes to the database
+			await currentUser.save();
+			await userTOFollow.save();
+
+			return res.status(200).json({
+				status: "success",
+				message: "Unfollowed successfully",
+			});
+		}
+
+		// Follow: Add id to following array of currentUser
+		currentUser.following.push(id);
+		// Add req.user._id to followers array of userTOFollow
+		userTOFollow.followers.push(req.user._id);
+
+		// Save changes to the database
+		await currentUser.save();
+		await userTOFollow.save();
+
+		return res.status(200).json({
+			status: "success",
+			message: "Followed successfully",
+			data: {
+				currentUser,
+				userTOFollow,
+			},
+		});
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).json({
+			status: "error",
+			message: "Unable to follow/unfollow. Please try again later.",
+		});
+	}
+};
+
+export { signUp, signIn, signOut, followUnFollow };
