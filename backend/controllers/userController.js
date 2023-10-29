@@ -162,6 +162,12 @@ const updateMyProfile = async (req, res) => {
 	const { name, username, bio, profilePic } = req.body;
 	try {
 		//current logged in user id
+		if (req.params.id != req.user._id) {
+			return res.status(400).json({
+				status: "fail",
+				message: "you can only update your profile",
+			});
+		}
 
 		if (!name && !username && !bio && !profilePic) {
 			return res.status(400).json({
@@ -185,7 +191,7 @@ const updateMyProfile = async (req, res) => {
 				await User.findByIdAndUpdate(req.user._id, { username });
 			}
 			if (bio) {
-        await User.findByIdAndUpdate(req.user._id, { bio });
+				await User.findByIdAndUpdate(req.user._id, { bio });
 			}
 			if (profilePic) {
 				await User.findByIdAndUpdate(req.user._id, { profilePic });
@@ -207,6 +213,51 @@ const updateMyProfile = async (req, res) => {
 	}
 };
 
+const getProfile = async (req, res) => {
+	
+		/* 
+		we will get the user's name , username , email, bio , profilePic
+		*/
+	try{
+		const { username } = req.params;
+		if(!username){
+			return res.status(400).json({
+				status: "fail",
+				message: "please provide username",
+			});
+		}
+	
+		const user = await User.findOne({username});
+		
+		if(!user)
+		{
+			return res.status(404).json({
+				status: "fail",
+				message: "user not found",
+			});
+		}
+		return res.status(200).json({
+			status: "success",
+			message: "profile fetched successfully",
+			data: {
+				name: user.name,
+				username: user.username,
+				email: user.email,
+				bio: user.bio,
+				profilePic: user.profilePic,
+			},
+		});
+	}
+	catch(err){
+		console.log("error from getProfile", err.message);
+		res.status(500).json({
+			status: "error",
+			message: "unable to get profile. please try again later.",
+		});
+	}
+	
+};
+
 //update the email and password using send token double authentication
 const updateMyInformation = async (req, res) => {};
 export {
@@ -216,4 +267,5 @@ export {
 	followUnFollow,
 	updateMyProfile,
 	updateMyInformation,
+	getProfile,
 };
