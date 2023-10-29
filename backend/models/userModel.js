@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
 		},
 		passwordConfirm: {
 			type: String,
-			// required: [true, "please enter your password again"],
+			required: [true, "please enter your password again"],
 			minLength: [6, "passowrd must be greater than 6 characters"],
 			validate: {
 				validator: function (e) {
@@ -67,26 +67,22 @@ const userSchema = new mongoose.Schema(
 );
 
 // this middleware will run before saving the document to database and hash the password before saving it to database
-userSchema.pre("save", async function (next) {
-	//ONLY RUN FUNCTION IF PASSWORD ACTUALLY MODIFIED
-	if (!this.isModified("password")) return next();
-
-	//HASH PASSWORD WITH COST
+userSchema.pre('save', async function (next) {
+	console.log('Original Password:', this.password);
+	if (!this.isModified('password')) return next();
 	this.password = await bcrypt.hash(this.password, 14);
-
-	//DELETE PASSWORD CONFIRm
+	console.log('Hashed Password:', this.password);
 	this.passwordConfirm = undefined;
 	next();
 });
 
-//this middleware will check wether the passowrd entered by user is correct(password entered by user is encrypted and then compared with the password stored in database) if not then it will return false
+// this middleware will run before saving the document to database and hash the password before saving it to database
 userSchema.methods.correctPassword = async function (
 	candidatePassword,
 	userPassword
 ) {
-	// return true if password is correct
 	return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-const User = mongoose.model("User", userSchema);
-export default User;
+
+export default mongoose.model("User", userSchema);

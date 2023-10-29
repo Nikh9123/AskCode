@@ -1,4 +1,4 @@
-import User from "../models/UserModel.js";
+import User from "../models/userModel.js";
 import { sendTokenToRes } from "../utils/helper/jwtToken.js";
 
 const signUp = async (req, res) => {
@@ -97,8 +97,15 @@ const followUnFollow = async (req, res) => {
 		console.log(req.params);
 		const { id } = req.params;
 
-		const userTOFollow = await User.findById(id);
-		const currentUser = await User.findById(req.user._id);
+		const userTOFollow = await User.findById(id); // user whom i want to follow
+		const currentUser = await User.findById(req.user._id); // current user who is logged in
+
+		if (id == req.user._id) {
+			return res.status(400).json({
+				status: "fail",
+				message: "You cannot follow/unfollow yourself",
+			});
+		}
 
 		if (!userTOFollow || !currentUser) {
 			return res.status(404).json({
@@ -111,45 +118,38 @@ const followUnFollow = async (req, res) => {
 		const isFollowing = currentUser.following.includes(id);
 
 		if (isFollowing) {
+			//unfollow user
+
 			// Unfollow: Remove id from following array of currentUser
-			currentUser.following = currentUser.following.filter(
-				(userId) => userId.toString() !== id
-			);
+			await User.findByIdAndUpdate(id, { $pull: { followers: req.user._id } });
 
 			// Remove req.user._id from followers array of userTOFollow
-			userTOFollow.followers = userTOFollow.followers.filter(
-				(followerId) => followerId.toString() !== req.user._id
-			);
-
-			// Save changes to the database
-			await currentUser.save();
-			await userTOFollow.save();
+			await User.findByIdAndUpdate(req.user._id, { $pull: { following: id } });
 
 			return res.status(200).json({
 				status: "success",
 				message: "Unfollowed successfully",
 			});
+		} else {
+			// Add req.user._id to followers array of userTOFollow
+			await User.findByIdAndUpdate(id, { $push: { followers: req.user._id } });
+
+			// Follow: Add id to following array of currentUser
+
+			await User.findByIdAndUpdate(req.user._id, { $push: { following: id } });
+			// Save changes to the database
+
+			return res.status(200).json({
+				status: "success",
+				message: "Followed successfully",
+				data: {
+					currentUser,
+					userTOFollow,
+				},
+			});
 		}
-
-		// Follow: Add id to following array of currentUser
-		currentUser.following.push(id);
-		// Add req.user._id to followers array of userTOFollow
-		userTOFollow.followers.push(req.user._id);
-
-		// Save changes to the database
-		await currentUser.save();
-		await userTOFollow.save();
-
-		return res.status(200).json({
-			status: "success",
-			message: "Followed successfully",
-			data: {
-				currentUser,
-				userTOFollow,
-			},
-		});
 	} catch (err) {
-		console.error(err.message);
+		console.error(err);
 		res.status(500).json({
 			status: "error",
 			message: "Unable to follow/unfollow. Please try again later.",
@@ -157,4 +157,63 @@ const followUnFollow = async (req, res) => {
 	}
 };
 
-export { signUp, signIn, signOut, followUnFollow };
+const updateMyProfile = async (req, res) => {
+	//we will update the user's name , username , password , email, bio , profilePic
+	const { name, username, bio, profilePic } = req.body;
+	try {
+		//current logged in user id
+
+		if (!name && !username && !bio && !profilePic) {
+			return res.status(400).json({
+				status: "fail",
+				message: "please provide filed to update",
+			});
+		}
+
+		if (name || username || bio || profilePic) {
+			const user = await User.findById(req.user._id);
+			if (!user) {
+				return res.status(404).json({
+					status: "fail",
+					message: "user not found",
+				});
+			}
+			if (name) {
+				await User.findByIdAndUpdate(req.user._id, { name });
+			}
+			if (username) {
+				await User.findByIdAndUpdate(req.user._id, { username });
+			}
+			if (bio) {
+        await User.findByIdAndUpdate(req.user._id, { bio });
+			}
+			if (profilePic) {
+				await User.findByIdAndUpdate(req.user._id, { profilePic });
+			}
+			return res.status(200).json({
+				status: "success",
+				message: "your profile was successfully updated",
+				data: {
+					user,
+				},
+			});
+		}
+	} catch (err) {
+		console.log("error from updateMyProfile", err);
+		res.status(500).json({
+			status: "error",
+			message: "unable to update your profile. please try again later.",
+		});
+	}
+};
+
+//update the email and password using send token double authentication
+const updateMyInformation = async (req, res) => {};
+export {
+	signUp,
+	signIn,
+	signOut,
+	followUnFollow,
+	updateMyProfile,
+	updateMyInformation,
+};

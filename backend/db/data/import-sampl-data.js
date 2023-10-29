@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
-import User from "../../models/UserModel.js";
+import User from "../../models/userModel.js";
 import Post from "../../models/postModel.js";
 
 import users from "./userSample.js";
