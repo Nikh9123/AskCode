@@ -1,5 +1,8 @@
+import crypto from "crypto";
+
 import User from "../models/userModel.js";
 import { sendTokenToRes } from "../utils/helper/jwtToken.js";
+import Email from "../utils/email.js";
 
 const signUp = async (req, res) => {
 	console.log(req.body);
@@ -29,7 +32,11 @@ const signUp = async (req, res) => {
 			passwordConfirm,
 			bio,
 		});
-
+		const url = `${req.protocol}://${req.get("host")}/profile/${
+			newUser.username
+		}`;
+		console.log("url : ", url);
+		await new Email(newUser, url);
 		sendTokenToRes(
 			newUser,
 			201,
@@ -214,23 +221,21 @@ const updateMyProfile = async (req, res) => {
 };
 
 const getProfile = async (req, res) => {
-	
-		/* 
+	/* 
 		we will get the user's name , username , email, bio , profilePic
 		*/
-	try{
+	try {
 		const { username } = req.params;
-		if(!username){
+		if (!username) {
 			return res.status(400).json({
 				status: "fail",
 				message: "please provide username",
 			});
 		}
-	
-		const user = await User.findOne({username});
-		
-		if(!user)
-		{
+
+		const user = await User.findOne({ username });
+
+		if (!user) {
 			return res.status(404).json({
 				status: "fail",
 				message: "user not found",
@@ -247,25 +252,40 @@ const getProfile = async (req, res) => {
 				profilePic: user.profilePic,
 			},
 		});
-	}
-	catch(err){
+	} catch (err) {
 		console.log("error from getProfile", err.message);
 		res.status(500).json({
 			status: "error",
 			message: "unable to get profile. please try again later.",
 		});
 	}
-	
+};
+
+const forgotPassword = async (req, res) => {
+	//& bana nahi hai krna hai
+	res.status(400).json({
+		status: "success",
+		message: "Not implemented yet",
+	});
 };
 
 //update the email and password using send token double authentication
-const updateMyInformation = async (req, res) => {};
+const resetMyEmailPassword = async (req, res) => {
+	//& bana nahi hai krna hai
+
+	//generate the hashed token which user will enter to change the email and password
+	res.status(400).json({
+		status: "success",
+		message: "Not implemented yet",
+	});
+};
+
 export {
 	signUp,
 	signIn,
 	signOut,
 	followUnFollow,
 	updateMyProfile,
-	updateMyInformation,
+	resetMyEmailPassword,
 	getProfile,
 };

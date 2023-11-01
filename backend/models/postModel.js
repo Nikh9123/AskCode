@@ -9,10 +9,15 @@ const postSchema = mongoose.Schema(
 		},
 		text: {
 			type: String,
-			maxLength: 500,
+			maxLength: [500, "A user name must not be greater than 20 characters"],
 		},
 		img: {
 			type: String,
+		},
+		errorDisc:{
+			type:String,
+			default:"",
+			maxLength: [2000, "A user name must not be greater than 20 characters"],
 		},
 		likes: {
 			// array of user ids

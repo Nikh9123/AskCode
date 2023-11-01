@@ -4,6 +4,7 @@ import cokieParser from "cookie-parser";
 
 import connectDb from "./db/connectDb.js";
 import userRoutes from "./routes/userRoutes.js"
+import postRoutes from "./routes/postRoutes.js"
 
 dotenv.config({path:'./config.env'})
 const app = express();
@@ -21,6 +22,7 @@ app.use(cokieParser());// to read cookies from browser
 
 //routes
 app.use('/api/user',userRoutes);
+app.use('/api/posts', postRoutes);
 
 app.listen(PORT, (req, res, err) => {
 	if (err) {

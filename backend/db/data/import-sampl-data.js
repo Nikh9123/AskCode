@@ -5,6 +5,7 @@ import User from "../../models/userModel.js";
 import Post from "../../models/postModel.js";
 
 import users from "./userSample.js";
+import posts from "./postSample.js";
 
 dotenv.config({ path: "../../config.env" });
 
@@ -26,7 +27,8 @@ mongoose
 
 const importData = async () => {
 	try {
-		await User.create(users);
+		// await User.create(users);
+		await Post.create(posts);
 		console.log("Data successfully loaded");
 		process.exit();
 	} catch (err) {
