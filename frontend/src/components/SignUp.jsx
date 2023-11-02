@@ -15,16 +15,19 @@ import {
 	Text,
 	useColorModeValue,
 	Link,
-  useToast,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useSetRecoilState } from "recoil";
 import authScreenAtom from "../atoms/authAtom";
+import useShowToast from "../hooks/useShowToast";
+import userAtom from "../atoms/userAtom";
 
 const SignupCard = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const setAuthScreen = useSetRecoilState(authScreenAtom);
+	const setUser = useSetRecoilState(userAtom)
+
 
 	const [input, setInput] = useState({
 		name: "",
@@ -33,10 +36,9 @@ const SignupCard = () => {
 		password: "",
     passwordConfirm: "",
 	});
-  const toast = useToast();// this is used in the handleSignup function to display a toast message
+  const showToast = useShowToast();// this is used in the handleSignup function to display a toast message
 
 	const handleSignup = async () => {
-    console.log(input);
 		try {
 			const res = await fetch("/api/user/signup", {
 				method: "POST",
@@ -46,32 +48,19 @@ const SignupCard = () => {
 				body: JSON.stringify(input),//converts the input object into a JSON
 			});
       const data = await res.json();
-      console.log(data);
       if(data.error)
       {
-        toast({
-          title: "Error",
-          description: data.error,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-          position: 'top', // Set the position to 'top'
-        })
+				showToast("error", data.error, "error");
         return ;
       }
-      else{
-        toast({
-          title: "success",
-          description: "Account created successfully",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-          position: 'top', // Set the position to 'top'
-        })
-      }
-      localStorage.setItem("askcode-user", JSON.stringify(data.data.user));
+			showToast("success", data.status, "success");
+			setUser(data.data.user);//set the user in the userAtom
+      
 
+			//set the user in the local storage
+      localStorage.setItem("askcode-user", JSON.stringify(data.data.user));
 		} catch (error) {
+			showToast("error", "unable to signup", "error");
 			console.log("error from SignUp page handleSignup : ", error);
 		}
 	};
