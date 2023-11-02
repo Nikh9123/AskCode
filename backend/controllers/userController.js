@@ -13,13 +13,19 @@ const signUp = async (req, res) => {
 		if (!name || !username || !email || !password || !passwordConfirm) {
 			return res.status(400).json({
 				status: "fail",
-				message: "please fill all the fields",
+				error: "please fill all the fields",
+			});
+		}
+		if(password !== passwordConfirm){
+			return res.status(400).json({
+				status: "fail",
+				error: "password and confirm password should be same",
 			});
 		}
 		if (user) {
 			return res.status(400).json({
 				status: "fail",
-				message:
+				error:
 					"user already exists...! please try again with another email or username",
 			});
 		}
@@ -44,41 +50,57 @@ const signUp = async (req, res) => {
 			res
 		);
 	} catch (err) {
+		console.log("error in signup controller", err.message);
+
 		res.status(500).json({
 			status: "error",
-			message: err.message,
+			error: "unable to create account. please try again later.",
 		});
-		console.log("error in signup controller", err.message);
 	}
 };
 
 const signIn = async (req, res) => {
 	try {
 		const { email, username, password } = req.body;
-		if (!email || !password || !username) {
-			res.status(400).json({
+
+		if (!password || !username) {
+			return res.status(400).json({
 				status: "fail",
-				message: "please provide email and password",
+				error: "Please provide all the fields",
 			});
 		}
-		// 2) CHECK IF USER EXISTS
-		const user = await User.findOne({ email }).select("+password");
-		console.log("user  = ", user.password);
-		if (!user || !(await user.correctPassword(password, user.password))) {
-			res.status(401).json({
+    if(password.length < 8){
+			return res.status(400).json({
 				status: "fail",
-				message: "incorrect email or password",
+				error: "password must be greater than 8 characters",
+			});		
+		}
+		const user = await User.findOne({ username }).select("+password");
+
+		if (!user) {
+			return res.status(401).json({
+				status: "fail",
+				error: "Incorrect username",
 			});
 		}
-		sendTokenToRes(user, 200, "you are logged in", res);
+
+		if (!(await user.correctPassword(password, user.password))) {
+			return res.status(401).json({
+				status: "fail",
+				error: "Incorrect password",
+			});
+		}
+
+		sendTokenToRes(user, 200, "You are logged in", res);
 	} catch (err) {
-		console.log(err);
-		res.status(500).json({
+		console.error("Error from signIn:", err.message);
+		return res.status(500).json({
 			status: "error",
-			message: "unable to sign in. please try again later.",
+			error: "Please check your username or password and try again",
 		});
 	}
 };
+
 
 const signOut = async (req, res) => {
 	try {
@@ -94,7 +116,7 @@ const signOut = async (req, res) => {
 	} catch (err) {
 		res.status(500).json({
 			status: "error",
-			message: "unable to sign out. please try again later.",
+			error: "unable to sign out. please try again later.",
 		});
 	}
 };
@@ -110,14 +132,14 @@ const followUnFollow = async (req, res) => {
 		if (id == req.user._id) {
 			return res.status(400).json({
 				status: "fail",
-				message: "You cannot follow/unfollow yourself",
+				error: "You cannot follow/unfollow yourself",
 			});
 		}
 
 		if (!userTOFollow || !currentUser) {
 			return res.status(404).json({
 				status: "fail",
-				message: "User not found",
+				error: "User not found",
 			});
 		}
 
@@ -159,7 +181,7 @@ const followUnFollow = async (req, res) => {
 		console.error(err);
 		res.status(500).json({
 			status: "error",
-			message: "Unable to follow/unfollow. Please try again later.",
+			error: "Unable to follow/unfollow. Please try again later.",
 		});
 	}
 };
@@ -172,14 +194,14 @@ const updateMyProfile = async (req, res) => {
 		if (req.params.id != req.user._id) {
 			return res.status(400).json({
 				status: "fail",
-				message: "you can only update your profile",
+				error: "you can only update your profile",
 			});
 		}
 
 		if (!name && !username && !bio && !profilePic) {
 			return res.status(400).json({
 				status: "fail",
-				message: "please provide filed to update",
+				error: "please provide filed to update",
 			});
 		}
 
@@ -188,7 +210,7 @@ const updateMyProfile = async (req, res) => {
 			if (!user) {
 				return res.status(404).json({
 					status: "fail",
-					message: "user not found",
+					error: "user not found",
 				});
 			}
 			if (name) {
@@ -215,7 +237,7 @@ const updateMyProfile = async (req, res) => {
 		console.log("error from updateMyProfile", err);
 		res.status(500).json({
 			status: "error",
-			message: "unable to update your profile. please try again later.",
+			error: "unable to update your profile. please try again later.",
 		});
 	}
 };
@@ -229,7 +251,7 @@ const getProfile = async (req, res) => {
 		if (!username) {
 			return res.status(400).json({
 				status: "fail",
-				message: "please provide username",
+				error: "please provide username",
 			});
 		}
 
@@ -238,7 +260,7 @@ const getProfile = async (req, res) => {
 		if (!user) {
 			return res.status(404).json({
 				status: "fail",
-				message: "user not found",
+				error: "user not found",
 			});
 		}
 		return res.status(200).json({
@@ -256,7 +278,7 @@ const getProfile = async (req, res) => {
 		console.log("error from getProfile", err.message);
 		res.status(500).json({
 			status: "error",
-			message: "unable to get profile. please try again later.",
+			error: "unable to get profile. please try again later.",
 		});
 	}
 };
@@ -265,7 +287,7 @@ const forgotPassword = async (req, res) => {
 	//& bana nahi hai krna hai
 	res.status(400).json({
 		status: "success",
-		message: "Not implemented yet",
+		error: "Not implemented yet",
 	});
 };
 
@@ -276,7 +298,7 @@ const resetMyEmailPassword = async (req, res) => {
 	//generate the hashed token which user will enter to change the email and password
 	res.status(400).json({
 		status: "success",
-		message: "Not implemented yet",
+		error: "Not implemented yet",
 	});
 };
 
