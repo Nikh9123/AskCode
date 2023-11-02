@@ -127,8 +127,8 @@ const deletePost = async (req, res) => {
 const likeUnlikePost = async (req, res) => {
 	try {
 		const { postId } = req.params;
-		console.log(postId);
 		const userId = req.user._id.toString();
+		console.log(userId);
 
 		const post = await Post.findById(postId);
 
@@ -224,12 +224,14 @@ const replyToPost = async(req,res)=>{
 
 
 const getUserFeedPost = async(req,res) => {
+  console.log(req)
   try {
-    const user = await User.findById(req.user._id) ;
-    
+		const userId = req.user._id;
+    const user = await User.findById(userId) ;
+
     if(!user)
     {
-      return res.status(404).json({
+        res.status(404).json({
         status:"fail",
         message:"user not found"
       })
@@ -254,7 +256,7 @@ const getUserFeedPost = async(req,res) => {
         message:"no posts found"
       })
     }
-    
+
     res.status(200).json({
       status:"success",
       message:"your feed",
