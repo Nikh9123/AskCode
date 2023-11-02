@@ -1,0 +1,9 @@
+/* styles.css */
+@font-face {
+  font-family: 'Luminari';
+  src: url('https://fonts.googleapis.com/css2?family=Luminari&display=swap');
+}
+
+.custom-font {
+  font-family: 'Luminari', fantasy;
+}
