@@ -214,15 +214,15 @@ const updateMyProfile = async (req, res) => {
 				error: "user not found",
 			});
 		}
-		if (name || username || bio || profilePic || email) {
-				if(name === user.name || username === user.username || bio === user.bio || profilePic === user.profilePic || email === user.email)
-				{
-					return res.status(400).json({
-						status: "fail",
-						error: "please provide filed to update",
-					});
-				}
-			}
+		// if (name || username || bio || profilePic || email) {
+		// 		if(name === user.name || username === user.username || bio === user.bio || profilePic === user.profilePic || email === user.email)
+		// 		{
+		// 			return res.status(400).json({
+		// 				status: "fail",
+		// 				error: "please provide filed to update",
+		// 			});
+		// 		}
+		// 	}
       console.log(req.body)
 			if (name) {
 				await User.findByIdAndUpdate(req.user._id, { name });
@@ -292,15 +292,12 @@ const getProfile = async (req, res) => {
 				error: "user not found",
 			});
 		}
+		user.password = undefined;
 		return res.status(200).json({
 			status: "success",
 			message: "profile fetched successfully",
 			data: {
-				name: user.name,
-				username: user.username,
-				email: user.email,
-				bio: user.bio,
-				profilePic: user.profilePic,
+				user
 			},
 		});
 	} catch (err) {
