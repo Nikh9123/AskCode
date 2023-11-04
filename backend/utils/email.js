@@ -2,6 +2,12 @@ import nodemailer from "nodemailer";
 import pug from "pug";
 import { convert } from "html-to-text";
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from "dotenv";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 class Email {
 	constructor(user, url) {
 		this.to = user.email;
@@ -11,7 +17,7 @@ class Email {
 	}
 
 	newTransport() {
-		//Real time email sending service from gmail
+		// Real time email sending service from gmail
 		const transporter = nodemailer.createTransport({
 			service: "Gmail",
 			auth: {
@@ -19,51 +25,48 @@ class Email {
         pass: 'qdvcvtmrgbnpkowm',
 			},
 		});
-		transporter.verify((err) => {
-			if (err) console.error(err);
-		});
 		return transporter;
 	}
 
-	//* SENDS the actual mail
 	async send(template, subject) {
-		// 1) RENDER HTML based on a pug TEMPLATE
-		const html = pug.renderFile(
-			`${__dirname}/../views/emails/${template}.pug`,
-			{
-				firstName: this.firstName,
-				url: this.url,
-				subject,
-			}
-		);
-		const text = convert(html, {
-			wordwrap: 130,
-		});
-		// 2) DEFINE email OPTIONS
-		const mailOptions = {
-			from: this.from,
-			to: this.to,
-			subject,
-			html,
-			text,
-		};
-
-		// 3) CREATE TRANSPORT and SEND mail
 		try {
+			console.log(__dirname);
+			const html = pug.renderFile(
+				`${__dirname}/../view/emails/${template}.pug`,
+				{
+					firstName: this.firstName,
+					url: this.url,
+					subject,
+				}
+			);
+			const text = convert(html, {
+				wordwrap: 130,
+			});
+
+			const mailOptions = {
+				from: this.from,
+				to: this.to,
+				subject,
+				html,
+				text,
+			};
+
 			await this.newTransport().sendMail(mailOptions);
-		} catch (err) {
-			console.log(err);
+		} catch (error) {
+			// Handle email sending error
+			console.error("Error sending email:", error);
+			throw new Error("Error sending email");
 		}
 	}
 
 	async sendWelcome() {
-		await this.send("welcome", "Welcome to the Natours!");
+		await this.send("welcome", "Welcome to the AskCode!");
 	}
 
 	async sendPasswordReset() {
 		await this.send(
 			"passwordReset",
-			"Your password reset token(valid for only 10 mins)"
+			"Your password reset token (valid for only 10 mins)"
 		);
 	}
 }

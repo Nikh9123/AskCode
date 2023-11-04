@@ -6,14 +6,45 @@ import {
 	Box,
 	Divider,
 	Button,
+	Menu,
+	MenuButton,
+	IconButton,
+	MenuList,
+	MenuItem,
+	useToast,
 } from "@chakra-ui/react";
-import { BsThreeDots } from "react-icons/bs";
+// import { BsThreeDots } from "react-icons/bs";
 import { useState } from "react";
 import Actions from "../components/Actions";
 import Comment from "../components/Comment";
+import {
+	AddIcon,
+	CopyIcon,
+	DeleteIcon,
+	EditIcon,
+	HamburgerIcon,
+} from "@chakra-ui/icons";
 
 const PostPage = () => {
 	const [liked, setLiked] = useState(false);
+
+  //copy post url
+	const toast = useToast();
+	
+	const copyURL = () => {
+		//copy url link
+		const currentURL = window.location.href;
+		navigator.clipboard.writeText(currentURL).then(() => {
+			toast({
+				title: "Copied.",
+				description: "user profile copied",
+				status: "success",
+				duration: 600,
+				isClosable: true,
+			});
+		});
+	};
+
 	return (
 		<>
 			<Flex>
@@ -30,7 +61,28 @@ const PostPage = () => {
 					<Text fontSize={"sm"} color={"gray.light"}>
 						1d
 					</Text>
-					<BsThreeDots cursor={"pointer"} />
+					<Menu>
+						<MenuButton
+							as={IconButton}
+							aria-label="Options"
+							icon={<HamburgerIcon />}
+							variant="outline"
+						/>
+						<MenuList bg={"gray.dark"}>
+							<MenuItem icon={<AddIcon />} bg={"gray.dark"} command="⌘⇧N">
+								new post
+							</MenuItem>
+							<MenuItem icon={<CopyIcon />} bg={"gray.dark"} onClick={copyURL} command="⌘⇧C">
+								copy post
+							</MenuItem>
+							<MenuItem icon={<DeleteIcon />} bg={"gray.dark"} command="⌘⇧D">
+								delete post
+							</MenuItem>
+							<MenuItem icon={<EditIcon />} bg={"gray.dark"} command="⌘⇧e">
+								edit post
+							</MenuItem>
+						</MenuList>
+					</Menu>
 				</Flex>
 			</Flex>
 			<Text my={3}>Let&apos;s talk about errors</Text>

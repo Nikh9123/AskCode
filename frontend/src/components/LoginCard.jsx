@@ -81,6 +81,7 @@ const LoginCard = () => {
 							<FormLabel>Username</FormLabel>
 							<Input
 								type="text"
+								placeholder="username"
 								onChange={(e) => {
 									setInput({ ...input, username: e.target.value });
 								}}
@@ -91,6 +92,7 @@ const LoginCard = () => {
 							<FormLabel>Password</FormLabel>
 							<InputGroup>
 								<Input
+								placeholder="password"
 									type={showPassword ? "text" : "password"}
 									onChange={(e) =>
 										setInput({ ...input, password: e.target.value })

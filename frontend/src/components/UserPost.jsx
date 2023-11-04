@@ -4,22 +4,26 @@ import {
 	Flex,
 	Image,
 	Text,
-	Menu,
-	MenuButton,
-	MenuList,
-	MenuItem,
-	MenuDivider,
+	// Menu,
+	// MenuButton,
+	// MenuList,
+	// MenuItem,
+	// // MenuDivider,
+	// // Button,
+	// // Icon,
+	// IconButton,
 } from "@chakra-ui/react";
-import { BsThreeDots } from "react-icons/bs";
+// import { BsThreeDots } from "react-icons/bs";
 import { Link } from "react-router-dom";
 import Actions from "./Actions";
 
 import { useState } from "react";
+import { ArrowForwardIcon } from "@chakra-ui/icons";
 
 const UserPost = ({ postImg, postTitle, likes, replies, postDesc }) => {
 	const [liked, setLiked] = useState(false);
 	return (
-		<Link to={"/nikhil9123/post/1"} >
+		<Link to={"/nikhil9123/post/1"}>
 			<Flex gap={3} mb={4} py={5} cursor={"auto"}>
 				<Flex flexDirection={"column"} alignItems={"center"}>
 					<Avatar
@@ -78,25 +82,7 @@ const UserPost = ({ postImg, postTitle, likes, replies, postDesc }) => {
 							<Text fontStyle={"sm"} color={"gray.light"}>
 								1d
 							</Text>
-							<Menu>
-								<MenuButton
-                borderRadius={"full"}
-                padding={1}
-									transition="all 0.2s"
-									_hover={{ bg: "gray.400" }}
-									_expanded={{ bg: "blue.400" }}
-									_focus={{ boxShadow: "outline" }}
-                  >
-									<BsThreeDots/>
-								</MenuButton>
-								<MenuList>
-									<MenuItem>New File</MenuItem>
-									<MenuItem>New Window</MenuItem>
-									<MenuDivider />
-									<MenuItem>Open...</MenuItem>
-									<MenuItem>Save File</MenuItem>
-								</MenuList>
-							</Menu>
+							<ArrowForwardIcon />
 						</Flex>
 					</Flex>
 					<Text

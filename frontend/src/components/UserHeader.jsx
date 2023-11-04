@@ -17,6 +17,7 @@ import { CgMoreO } from "react-icons/cg";
 
 export const UserHeader = () => {
 	const toast = useToast();
+	
 	const copyURL = () => {
 		//copy url link
 		const currentURL = window.location.href;
@@ -30,6 +31,7 @@ export const UserHeader = () => {
 			});
 		});
 	};
+
 	return (
 		<VStack gap={4} alignItems={"start"}>
 			<Flex justifyContent={"space-between"} w={"full"}>

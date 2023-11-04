@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import {v2 as cloudinary} from "cloudinary";
+
 
 import User from "../models/userModel.js";
 import { sendTokenToRes } from "../utils/helper/jwtToken.js";
@@ -42,7 +43,7 @@ const signUp = async (req, res) => {
 			newUser.username
 		}`;
 		console.log("url : ", url);
-		await new Email(newUser, url);
+		await new Email(newUser, url).sendWelcome();
 		sendTokenToRes(
 			newUser,
 			201,
@@ -188,8 +189,9 @@ const followUnFollow = async (req, res) => {
 
 const updateMyProfile = async (req, res) => {
 	//we will update the user's name , username , password , email, bio , profilePic
-	const { name, username, bio, profilePic } = req.body;
 	try {
+		const { name, username, bio , email} = req.body;
+		let { profilePic } = req.body;
 		//current logged in user id
 		if (req.params.id != req.user._id) {
 			return res.status(400).json({
@@ -198,43 +200,70 @@ const updateMyProfile = async (req, res) => {
 			});
 		}
 
-		if (!name && !username && !bio && !profilePic) {
+		if (!name && !username && !bio && !profilePic && !email) {
 			return res.status(400).json({
 				status: "fail",
 				error: "please provide filed to update",
 			});
 		}
 
-		if (name || username || bio || profilePic) {
-			const user = await User.findById(req.user._id);
-			if (!user) {
-				return res.status(404).json({
-					status: "fail",
-					error: "user not found",
-				});
+    const user = await User.findById(req.user._id);
+		if (!user) {
+			return res.status(404).json({
+				status: "fail",
+				error: "user not found",
+			});
+		}
+		if (name || username || bio || profilePic || email) {
+				if(name === user.name || username === user.username || bio === user.bio || profilePic === user.profilePic || email === user.email)
+				{
+					return res.status(400).json({
+						status: "fail",
+						error: "please provide filed to update",
+					});
+				}
 			}
+      console.log(req.body)
 			if (name) {
 				await User.findByIdAndUpdate(req.user._id, { name });
 			}
 			if (username) {
-				await User.findByIdAndUpdate(req.user._id, { username });
+				console.log("username",username)
+				await User.findByIdAndUpdate(req.user._id,{$set: { username }});
 			}
 			if (bio) {
 				await User.findByIdAndUpdate(req.user._id, { bio });
 			}
-			if (profilePic) {
-				await User.findByIdAndUpdate(req.user._id, { profilePic });
+			if(email)
+			{
+				console.log("email",email)
+				await User.findByIdAndUpdate(req.user._id,{$set: { email }});
 			}
+			
+			//* uploading profile pic to cloudinary
+			if(profilePic)
+			{
+				if (user.profilePic) {
+					await cloudinary.uploader.destroy(user.profilePic.split("/").pop().split(".")[0]);
+				}
+				
+				const result = await cloudinary.uploader.upload(profilePic);
+				profilePic = result.secure_url; 
+				console.log(result);
+				await User.findByIdAndUpdate(req.user._id, { profilePic: result.secure_url });
+			}
+			
+      const newUser = await User.findById(req.user._id);
 			return res.status(200).json({
 				status: "success",
 				message: "your profile was successfully updated",
 				data: {
-					user,
+					newUser,
 				},
 			});
 		}
-	} catch (err) {
-		console.log("error from updateMyProfile", err);
+	catch (err) {
+		console.log("error from updateMyProfile : ", err);
 		res.status(500).json({
 			status: "error",
 			error: "unable to update your profile. please try again later.",
