@@ -10,7 +10,6 @@ const usePreviewImg = () => {
     //if image then set the image url
 		if(file && file.type.startsWith('image/')) {
       const reader = new FileReader();// the fileredaer api will allow us to read the file in string format
-      console.log("readre: ",reader);
       reader.onloadend = ()=>{
         setImgUrl(reader.result);
       }
@@ -18,6 +17,7 @@ const usePreviewImg = () => {
     }
     else{ //if not an image then show error
       showToast("Invalid file type ", "Please upload an image file", "error");
+
       setImgUrl(null);
     }
 	};

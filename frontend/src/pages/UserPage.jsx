@@ -1,10 +1,58 @@
+import { useEffect, useState } from "react";
 import { UserHeader } from "../components/UserHeader";
 import UserPost from "../components/UserPost";
+import { useParams } from "react-router-dom";
+import useShowToast from "../hooks/useShowToast";
+
 
 const UserPage = () => {
+	const [user, setUser] = useState(null);//set the user data in the component's state
+
+	const showToast = useShowToast(); // custom hook coming from hooks folder
+
+	const { username } = useParams(); // get the username from the url
+
+
+	useEffect(() => {
+		// Define an asynchronous function called getUser
+		const getUser = async () => {
+			try {
+				// Make an HTTP request to the specified API endpoint using fetch
+				const res = await fetch(`/api/user/profile/${username}`);
+
+				// Parse the JSON response from the API
+				const data = await res.json();
+
+				// Check if the response contains an error
+				if (data.error) {
+					// If there's an error, log it to the console and show a toast notification with the error message
+					console.log("error from userPage: ", data.error);
+					showToast("fail", data.error, "error");
+					return;
+				}
+        if(!data.data.user)
+				{
+					showToast("fail", "user not found", "error");
+					return ;
+				}
+				// If there are no errors, set the user data in the component's state using the setUser function
+				setUser(data.data.user);
+			} catch (error) {
+				// If there's an error during the fetch operation, log it to the console and show a toast notification with the error message
+				console.log(error);
+				showToast("fail", error, "error");
+			}
+		};
+
+		// Call the getUser function when the component mounts or when the values of username or showToast change
+		getUser();
+
+		// Specify the dependencies for the useEffect hook, in this case, username and showToast
+	}, [username, showToast]);
+	if (!user) return null;
 	return (
 		<>
-			<UserHeader />
+			<UserHeader user={user} />
 			<UserPost
 				likes={1200}
 				replies={481}

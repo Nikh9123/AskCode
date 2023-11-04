@@ -13,7 +13,6 @@ import UpdateProfilePage from "./pages/UpdateProfilePage";
 
 function App() {
 	const user = useRecoilValue(userAtom);
-	console.log("user : ",user);
 	return (
 		<Container maxW="620px">
 			<Header />
@@ -28,6 +27,7 @@ function App() {
 			</Routes>
 
 			{user && <LogoutButton/>}
+			{user && <CreatePost/>}
 		</Container>
 
 

@@ -25,6 +25,7 @@ const UpdateProfilePage = () => {
 
   //TODO: fetch the user data from the local storage of the browser
 	const [user, setUser] = useRecoilState(userAtom);
+	const [updating, setUpdating] = useState(false);
 	const [inputs, setInputs] = useState({
 		name: user.name,
 		username: user.username,
@@ -43,7 +44,8 @@ const UpdateProfilePage = () => {
   const handleSubmit = async(e) =>{
 
 		e.preventDefault(); 
-
+    if(updating) return ; // if the user is already updating the profile, don't do anything (prevent spamming the button)
+		setUpdating(true);
     try {
       //TODO: fetch the API && send the data to the server to update the user profile
       
@@ -69,6 +71,9 @@ const UpdateProfilePage = () => {
       console.log(error)
       showToast("error", error.message,'error')
     }
+		finally{
+			setUpdating(false);
+		}
 
   }
 
@@ -173,6 +178,7 @@ const UpdateProfilePage = () => {
 							bg: "blue.500",
 						}}
             type="submit"
+						isLoading={updating}
             >
 						Submit
 					</Button>
