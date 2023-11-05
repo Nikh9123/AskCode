@@ -5,12 +5,15 @@ import { IoLogOutOutline } from "react-icons/io5";
 
 import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
+import { useState } from "react";
 
 const LogoutButton = () => {
 	const setUser = useSetRecoilState(userAtom);
 	const showToast = useShowToast();
+	const [loading , setLoading] = useState(false);
 
 	const handleLogout = async () => {
+		setLoading(true);
 		try {
 			const res = await fetch("/api/user/signout", {
 				method: "GET",
@@ -32,15 +35,18 @@ const LogoutButton = () => {
 		} catch (error) {
 			console.log("error from LogoutButton : ", error);
 			showToast("error", "logout failed. try after some time", "Logout failed");
+		}finally{
+			setLoading(false);
 		}
 	};
 
 	return (
 		<Button
 			position={"fixed"}
-			top={"30px"}
+			top={"10px"}
 			right={"30px"}
-			size={"sm"}
+			size={"lg"}
+			isLoading={loading}
 			onClick={handleLogout}>
 			{/* Logout */}
 			{/* <HiOutLineLogout /> */}

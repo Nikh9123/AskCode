@@ -3,6 +3,7 @@ import { UserHeader } from "../components/UserHeader";
 import UserPost from "../components/UserPost";
 import { useParams } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
+import {Flex, Spinner } from "@chakra-ui/react";
 
 
 const UserPage = () => {
@@ -11,7 +12,7 @@ const UserPage = () => {
 	const showToast = useShowToast(); // custom hook coming from hooks folder
 
 	const { username } = useParams(); // get the username from the url
-
+  const [loading , setLoading] = useState(true);
 
 	useEffect(() => {
 		// Define an asynchronous function called getUser
@@ -42,6 +43,9 @@ const UserPage = () => {
 				console.log(error);
 				showToast("fail", error, "error");
 			}
+			finally{
+				setLoading(false);
+			}
 		};
 
 		// Call the getUser function when the component mounts or when the values of username or showToast change
@@ -49,7 +53,16 @@ const UserPage = () => {
 
 		// Specify the dependencies for the useEffect hook, in this case, username and showToast
 	}, [username, showToast]);
-	if (!user) return null;
+	
+	if(loading && !user) {
+		return (
+			<Flex justifyContent={'center'}>
+         <Spinner size={'xl'}/>
+			</Flex>
+		)
+	}
+
+	if (!user && !loading) return <h1>user not found</h1>;
 	return (
 		<>
 			<UserHeader user={user} />

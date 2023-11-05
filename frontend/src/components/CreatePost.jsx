@@ -118,6 +118,7 @@ const CreatePost = () => {
       setImgUrl(null);
       setPostText("");
       setPostDescription("");
+      
 		} catch (error) {
 			console.log("error from handleCreatePost : ", error);
 			showToast("error", error, "error");

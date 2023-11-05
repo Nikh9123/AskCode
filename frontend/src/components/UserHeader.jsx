@@ -127,7 +127,7 @@ export const UserHeader = ({user}) => {
 				</Box>
 			</Flex>
 			<Text>
-				{user.bio}
+				Bio: {user.bio}
 			</Text>
 			{currentUser._id === user._id && (
 				<Link as={RouterLink} to={"/updateMe"}><Button size={"sm"}>Update Profile</Button></Link>
