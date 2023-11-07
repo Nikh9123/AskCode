@@ -12,6 +12,7 @@ import {
 	MenuItem,
 	useToast,
 	Button,
+	theme,
 } from "@chakra-ui/react";
 import { BsGithub, BsTwitter } from "react-icons/bs";
 import { CgMoreO } from "react-icons/cg";
@@ -27,7 +28,7 @@ export const UserHeader = ({user}) => {
   const showToast = useShowToast(); // custom hook coming from hooks folder
 	const currentUser = useRecoilValue(userAtom); // get the current logged in user data from the global state coming from browser local storage
 
-	const [following , setFollowing] = useState(user.followers.includes(currentUser._id)); // when user follow another user, the following state will add the user id to the following array
+	const [following , setFollowing] = useState(user.followers.includes(currentUser?._id)); // when user follow another user, the following state will add the user id to the following array
   console.log(following)
 
 	const copyURL = () => {
@@ -45,7 +46,7 @@ export const UserHeader = ({user}) => {
 	};
   
 	const handleFollowUnfollow = async() => {
-		if(!currentUser._id)
+		if(!currentUser?._id)
 		{
 			showToast("error", "you must login first to follow or unfollow", "error");
 			return ;
@@ -70,11 +71,11 @@ export const UserHeader = ({user}) => {
 			if(following)
 			{
 				showToast("success", `you unfollowed ${user.name}`, "success");
-				user.followers = user.followers.filter((follower) => follower !== currentUser._id);
+				user.followers = user.followers.filter((follower) => follower !== currentUser?._id);
 			}
 			else{
 				showToast("success", `you followed ${user.name}`, "success");
-				user.followers.push(currentUser._id);
+				user.followers.push(currentUser?._id);
 			}
 
 
@@ -129,10 +130,10 @@ export const UserHeader = ({user}) => {
 			<Text>
 				Bio: {user.bio}
 			</Text>
-			{currentUser._id === user._id && (
+			{currentUser?._id === user._id && (
 				<Link as={RouterLink} to={"/updateMe"}><Button size={"sm"}>Update Profile</Button></Link>
 			)}
-			{currentUser._id !== user._id && (
+			{currentUser?._id !== user._id && (
 				<Link as={RouterLink} ><Button size={"sm"} onClick={handleFollowUnfollow} isLoading={updating}>{following ? 'Unfollow' : 'Follow'}</Button></Link>
 			)}
 			<Flex w={"full"} justifyContent={"space-between"}>
@@ -155,8 +156,8 @@ export const UserHeader = ({user}) => {
 								<CgMoreO size={24} cursor={"pointer"} />
 							</MenuButton>
 							<Portal>
-								<MenuList bg={"gray.dark"}>
-									<MenuItem bg={"gray.dark"} onClick={copyURL}>
+								<MenuList initialcolormode={theme.config.initialColorMode}>
+									<MenuItem initialcolormode={theme.config.initialColorMode} onClick={copyURL}>
 										copy profile
 									</MenuItem>
 								</MenuList>

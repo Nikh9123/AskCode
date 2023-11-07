@@ -8,7 +8,7 @@ const router = express.Router();
 router.post("/signup", signUp);
 router.post("/signin",signIn) ;
 router.get("/signout", signOut);
-router.get("/profile/:username", getProfile)
+router.get("/profile/:query", getProfile)
 
 router.use(protectRoute);
 //protect all the routes after this middleware

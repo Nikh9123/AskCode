@@ -7,7 +7,7 @@ const postSchema = mongoose.Schema(
 			ref: "User",
 			required: true,
 		},
-		text: {
+		text: {//consider text as a error title
 			type: String,
 			maxLength: [500, "A user name must not be greater than 20 characters"],
 		},

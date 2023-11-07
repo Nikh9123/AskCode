@@ -4,6 +4,8 @@ import {v2 as cloudinary} from "cloudinary";
 import User from "../models/userModel.js";
 import { sendTokenToRes } from "../utils/helper/jwtToken.js";
 import Email from "../utils/email.js";
+import mongoose from "mongoose";
+import Post from "../models/postModel.js";
 
 const signUp = async (req, res) => {
 	console.log(req.body);
@@ -275,16 +277,23 @@ const getProfile = async (req, res) => {
 	/* 
 		we will get the user's name , username , email, bio , profilePic
 		*/
-	try {
-		const { username } = req.params;
-		if (!username) {
+		// we will fetchuser by either id or username which is query
+		const { query } = req.params;
+		if (!query) {
 			return res.status(400).json({
 				status: "fail",
 				error: "please provide username",
 			});
 		}
-
-		const user = await User.findOne({ username });
+	try {
+    let user ;
+		if(mongoose.Types.ObjectId.isValid(query))
+		{
+			user = await User.findById({_id : query}).select("-password").select('-updatedAt');
+		}
+		else{
+			user = await User.findOne({username : query}).select("-password").select('-updatedAt');
+		}
 
 		if (!user) {
 			return res.status(404).json({
@@ -308,6 +317,7 @@ const getProfile = async (req, res) => {
 		});
 	}
 };
+
 
 const forgotPassword = async (req, res) => {
 	//& bana nahi hai krna hai

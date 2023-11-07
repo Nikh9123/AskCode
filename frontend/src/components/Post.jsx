@@ -18,12 +18,15 @@ import { Link, useNavigate } from "react-router-dom";
 import Actions from "./Actions";
 
 import { useEffect, useState } from "react";
-import { ArrowForwardIcon } from "@chakra-ui/icons";
+import { ArrowForwardIcon, DeleteIcon } from "@chakra-ui/icons";
 import useShowToast from "../hooks/useShowToast";
 import { formatDistanceToNow } from "date-fns";
+import userAtom from "../atoms/userAtom";
+import { useRecoilValue } from "recoil";
 
 const Post = ({ post, postedBy }) => {
   const [user, setUser] = useState(null);
+  const currentUser = useRecoilValue(userAtom);
   const showToast = useShowToast();
   const navigate = useNavigate();
   // const maxVisibleLength = 55;
@@ -52,6 +55,31 @@ const Post = ({ post, postedBy }) => {
     getUser();
   }, [postedBy, showToast]);
 
+  const handleDeletePost = async (e) => {
+    try {
+      e.preventDefault();
+      if(!window.confirm("Are you sure you want to delete this post?")) return;
+
+      const res = await fetch(`/api/posts/delete/${post._id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await res.json();
+      console.log(data);
+      if (data.error) {
+        showToast("error", data.error, "error");
+        return;
+      }
+      showToast("success", data.message, "success");
+      //refresh the page
+      window.location.reload();
+    } catch (error) {
+      showToast("error", error.message, "error");
+
+    }
+  }
   //* highlight urls in the text
   // const highlightUrls = (text, maxVisibleLength) => {
   //   // Regular expression to match URLs
@@ -186,7 +214,7 @@ const Post = ({ post, postedBy }) => {
               <Text fontStyle={"sm"} color={"gray.light"} width={32}>
                 {formatDistanceToNow(new Date(post.createdAt))} ago
               </Text>
-              <ArrowForwardIcon boxSize={"4"} />
+              {currentUser._id === user._id && <DeleteIcon boxSize={4} onClick={handleDeletePost}/>}
             </Flex>
           </Flex>
           <Text

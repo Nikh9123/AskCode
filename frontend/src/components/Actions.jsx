@@ -3,7 +3,6 @@ import {
   Button,
   Flex,
   Textarea,
-  Input,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -18,7 +17,7 @@ import { useState } from "react";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
-import { set } from "date-fns";
+import { is } from "date-fns/locale";
 
 const Actions = ({ post: _post }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -30,13 +29,14 @@ const Actions = ({ post: _post }) => {
     _post?.likes?.includes(user?._id) || false
   ); // if user is logged in and he has liked the post then set liked to true else false
   const [liking, setLiking] = useState(false); // to prevent multiple clicks on like button
-  const showToast = useShowToast();
+  const [isReplying,setIsReplying] = useState(false); // to prevent multiple clicks on reply button
+	const showToast = useShowToast();
 
   const handleLikeAndUnlike = async () => {
     if (liking) return;
     setLiking(true);
     if (!user) {
-      showToast(
+      return showToast(
         "Error",
         "You must login first to like or dislike a post",
         "error"
@@ -55,7 +55,7 @@ const Actions = ({ post: _post }) => {
         console.log("error : ", data.error);
         showToast("Error", data.error, "error");
       }
-      if (liked) {
+      if (liked) { // if already liked then unlike it
         setPost({
           ...post,
           likes: post.likes.filter((like) => like !== user._id),
@@ -71,15 +71,20 @@ const Actions = ({ post: _post }) => {
       setLiking(false);
     }
   };
+
   const handleReply = async () => {
 		if (!user) {
-			showToast(
+
+			return showToast(
 				"Error",
 				"You must login first to reply to a post",
 				"error"
 			);
+			
 		}
 		try {
+			if(isReplying) return;
+			setIsReplying(true);
 			const res = await fetch(`/api/posts/reply/${post._id}`, {
 				method: "PUT",
 				headers: {
@@ -96,9 +101,12 @@ const Actions = ({ post: _post }) => {
 			setPost({ ...post, replies: [...post.replies, data.reply] });
 			setReply('');
 			onClose();
+			showToast("Success", "Your answer posted successfully", "success");
 		} catch (error) {
 			console.log("error from HandleReply : ", error.message);
 			showToast("Error", error.message, "error");
+		}finally{
+			setIsReplying(false);
 		}
 	};
   if (!post) {
@@ -187,7 +195,7 @@ const Actions = ({ post: _post }) => {
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={handleReply}>
+            <Button colorScheme="blue" mr={3} onClick={handleReply} isLoading={isReplying}>
               Post
             </Button>
             <Button onClick={onClose}>Cancel</Button>

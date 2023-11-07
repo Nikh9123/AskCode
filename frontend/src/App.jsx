@@ -11,6 +11,7 @@ import userAtom from "./atoms/userAtom";
 import LogoutButton from "./components/LogoutButton";
 import UpdateProfilePage from "./pages/UpdateProfilePage";
 import CreatePost from "./components/CreatePost";
+import AiChatPage from "./pages/AiChatPage";
 
 function App() {
 	const user = useRecoilValue(userAtom);
@@ -25,6 +26,7 @@ function App() {
 
 				<Route path="/:username" element={<UserPage />} />
 				<Route path="/:username/post/:pid" element={<PostPage />} />
+				<Route path="/askAi" element={user ? <AiChatPage/> : <Navigate to={'/auth'}/>} />
 			</Routes>
 
 			{user && <LogoutButton/>}
