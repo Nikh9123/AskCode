@@ -4,46 +4,25 @@ import { useParams } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
 import { Flex, Spinner } from "@chakra-ui/react";
 import Post from "../components/Post";
+import useGetUserProfile from "../hooks/useGetUserProfile";
+import { useRecoilState } from "recoil";
+import postsAtom from "../atoms/postAtom";
 
 const UserPage = () => {
 
-  const [user, setUser] = useState(null); //set the user data in the component's state
-  const [posts, setPosts] = useState([]); //set the posts data in the component's state
+  // const [user, setUser] = useState(null); //set the user data in the component's state
+  const [posts, setPosts] = useRecoilState(postsAtom); //set the posts data in the component's state
   const [fetchingPosts, setFetchingPosts] = useState(true); //set the posts data in the component's state
   const showToast = useShowToast(); // custom hook coming from hooks folder
-
+  // import the getUser function when the component mounts or when the values of username or showToast change
+  const {user , loading} = useGetUserProfile()
   const { username } = useParams(); // get the username from the url
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Define an asynchronous function called getUser
     //1. getUser will find the profile of user
-    const getUser = async () => {
-			try {
-				// Make an HTTP request to the specified API endpoint using fetch
-				const res = await fetch(`/api/user/profile/${username}`);
-
-				// Parse the JSON response from the API
-				const data = await res.json();
-
-				// Check if the response contains an error
-				if (data.error) {
-					// If there's an error, log it to the console and show a toast notification with the error message
-					console.log("error from userPage: ", data.error);
-					showToast("fail", data.error, "error");
-					return;
-				}
-				// If there are no errors, set the user data in the component's state using the setUser function
-				setUser(data.data.user);
-			} catch (error) {
-				// If there's an error during the fetch operation, log it to the console and show a toast notification with the error message
-				console.log(error);
-				showToast("fail", error.message, "error");
-			}
-			finally{
-				setLoading(false);
-			}
-		};
+    
 
 		const getUserPosts = async () => {
 			setFetchingPosts(true);
@@ -66,13 +45,12 @@ const UserPage = () => {
 		}
     
 
-    // Call the getUser function when the component mounts or when the values of username or showToast change
-    getUser();
+    
     getUserPosts();
     // Specify the dependencies for the useEffect hook, in this case, username and showToast
-  }, [username, showToast]);
+  }, [username, showToast , setPosts]);
 
-	
+	console.log("posts is here it is recoil state ", posts);
   if (loading && !user) {
     return (
       <Flex justifyContent={"center"}>
@@ -82,10 +60,10 @@ const UserPage = () => {
   }
 
   if (!user && !loading) return <h1>user not found</h1>;
+	
   return (
     <>
       <UserHeader user={user} />
-      {/* <UserPost postImg={posts.img} postTitle={posts.text} likes={posts.likes} replies={posts.likes} postDesc={posts.errorDisc} /> */}
       {!fetchingPosts && posts.length === 0 && 
 				<Flex justify={"center"} align={"center"} mt={20} fontSize={20}>	
 					<h1>No Questions or Answers to show🥲😥</h1>
@@ -98,7 +76,7 @@ const UserPage = () => {
         </Flex>
       )}
 			{posts.map((post) => (
-				<Post key={post._id} post={post} postedBy={post.postedBy} />
+				<Post key={post._id} post={post} postedBy={post.postedBy}  />
 			))}
       
     </>

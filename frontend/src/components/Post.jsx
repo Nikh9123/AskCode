@@ -22,10 +22,12 @@ import { ArrowForwardIcon, DeleteIcon } from "@chakra-ui/icons";
 import useShowToast from "../hooks/useShowToast";
 import { formatDistanceToNow } from "date-fns";
 import userAtom from "../atoms/userAtom";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
+import postsAtom from "../atoms/postAtom";
 
-const Post = ({ post, postedBy }) => {
+const Post = ({ post, postedBy}) => {
   const [user, setUser] = useState(null);
+  const [posts , setPosts] = useRecoilState(postsAtom); //set the posts data in the component's state
   const currentUser = useRecoilValue(userAtom);
   const showToast = useShowToast();
   const navigate = useNavigate();
@@ -45,7 +47,6 @@ const Post = ({ post, postedBy }) => {
           showToast("error", data.error, "error");
           return;
         }
-        // console.log(data.data.user)
         setUser(data.data.user);
       } catch (error) {
         showToast("error", error.message, "error");
@@ -58,7 +59,7 @@ const Post = ({ post, postedBy }) => {
   const handleDeletePost = async (e) => {
     try {
       e.preventDefault();
-      if(!window.confirm("Are you sure you want to delete this post?")) return;
+      if (!window.confirm("Are you sure you want to delete this post?")) return;
 
       const res = await fetch(`/api/posts/delete/${post._id}`, {
         method: "DELETE",
@@ -74,12 +75,12 @@ const Post = ({ post, postedBy }) => {
       }
       showToast("success", data.message, "success");
       //refresh the page
-      window.location.reload();
+      // window.location.reload();
+      setPosts(posts.filter((p) => p._id !== post._id));
     } catch (error) {
       showToast("error", error.message, "error");
-
     }
-  }
+  };
   //* highlight urls in the text
   // const highlightUrls = (text, maxVisibleLength) => {
   //   // Regular expression to match URLs
@@ -214,7 +215,10 @@ const Post = ({ post, postedBy }) => {
               <Text fontStyle={"sm"} color={"gray.light"} width={32}>
                 {formatDistanceToNow(new Date(post.createdAt))} ago
               </Text>
-              {currentUser._id === user._id && <DeleteIcon boxSize={4} onClick={handleDeletePost}/>}
+              {currentUser?._id === user._id && (
+                <DeleteIcon boxSize={4} onClick={handleDeletePost} />
+              )}
+              {currentUser?._id != user._id && <ArrowForwardIcon boxSize={4} />}
             </Flex>
           </Flex>
           <Text

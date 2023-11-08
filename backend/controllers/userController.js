@@ -1,5 +1,4 @@
-import {v2 as cloudinary} from "cloudinary";
-
+import { v2 as cloudinary } from "cloudinary";
 
 import User from "../models/userModel.js";
 import { sendTokenToRes } from "../utils/helper/jwtToken.js";
@@ -19,7 +18,7 @@ const signUp = async (req, res) => {
 				error: "please fill all the fields",
 			});
 		}
-		if(password !== passwordConfirm){
+		if (password !== passwordConfirm) {
 			return res.status(400).json({
 				status: "fail",
 				error: "password and confirm password should be same",
@@ -72,11 +71,11 @@ const signIn = async (req, res) => {
 				error: "Please provide all the fields",
 			});
 		}
-    if(password.length < 8){
+		if (password.length < 8) {
 			return res.status(400).json({
 				status: "fail",
 				error: "password must be greater than 8 characters",
-			});		
+			});
 		}
 		const user = await User.findOne({ username }).select("+password");
 
@@ -103,7 +102,6 @@ const signIn = async (req, res) => {
 		});
 	}
 };
-
 
 const signOut = async (req, res) => {
 	try {
@@ -192,7 +190,7 @@ const followUnFollow = async (req, res) => {
 const updateMyProfile = async (req, res) => {
 	//we will update the user's name , username , password , email, bio , profilePic
 	try {
-		const { name, username, bio , email} = req.body;
+		const { name, username, bio, email } = req.body;
 		let { profilePic } = req.body;
 		//current logged in user id
 		if (req.params.id != req.user._id) {
@@ -209,7 +207,7 @@ const updateMyProfile = async (req, res) => {
 			});
 		}
 
-    const user = await User.findById(req.user._id);
+		const user = await User.findById(req.user._id);
 		if (!user) {
 			return res.status(404).json({
 				status: "fail",
@@ -225,46 +223,62 @@ const updateMyProfile = async (req, res) => {
 		// 			});
 		// 		}
 		// 	}
-      console.log(req.body)
-			if (name) {
-				await User.findByIdAndUpdate(req.user._id, { name });
+		console.log(req.body);
+		if (name) {
+			await User.findByIdAndUpdate(req.user._id, { name });
+		}
+		if (username) {
+			console.log("username", username);
+			await User.findByIdAndUpdate(req.user._id, { $set: { username } });
+		}
+		if (bio) {
+			await User.findByIdAndUpdate(req.user._id, { bio });
+		}
+		if (email) {
+			console.log("email", email);
+			await User.findByIdAndUpdate(req.user._id, { $set: { email } });
+		}
+
+		//* uploading profile pic to cloudinary
+		if (profilePic) {
+			if (user.profilePic) {
+				await cloudinary.uploader.destroy(
+					user.profilePic.split("/").pop().split(".")[0]
+				);
 			}
-			if (username) {
-				console.log("username",username)
-				await User.findByIdAndUpdate(req.user._id,{$set: { username }});
-			}
-			if (bio) {
-				await User.findByIdAndUpdate(req.user._id, { bio });
-			}
-			if(email)
-			{
-				console.log("email",email)
-				await User.findByIdAndUpdate(req.user._id,{$set: { email }});
-			}
-			
-			//* uploading profile pic to cloudinary
-			if(profilePic)
-			{
-				if (user.profilePic) {
-					await cloudinary.uploader.destroy(user.profilePic.split("/").pop().split(".")[0]);
-				}
-				
-				const result = await cloudinary.uploader.upload(profilePic);
-				profilePic = result.secure_url; 
-				console.log(result);
-				await User.findByIdAndUpdate(req.user._id, { profilePic: result.secure_url });
-			}
-			
-      const newUser = await User.findById(req.user._id);
-			return res.status(200).json({
-				status: "success",
-				message: "your profile was successfully updated",
-				data: {
-					newUser,
-				},
+
+			const result = await cloudinary.uploader.upload(profilePic);
+			profilePic = result.secure_url;
+			console.log(result);
+			await User.findByIdAndUpdate(req.user._id, {
+				profilePic: result.secure_url,
 			});
 		}
-	catch (err) {
+    console.log("user._id",req.user._id, user.username)
+		//this function will find the user by id and update the username and profilePic in the replies array 
+		
+
+		const newUser = await User.findById(req.user._id);
+		await Post.updateMany(
+			{ "replies.userId": req.user._id },
+			{
+				$set: {
+					"replies.$[reply].username": newUser.username,
+					"replies.$[reply].userProfilePic": newUser.profilePic,
+				},
+			},
+			{
+				arrayFilters: [{ "reply.userId": req.user._id }],
+			}
+		);
+		return res.status(200).json({
+			status: "success",
+			message: "your profile was successfully updated",
+			data: {
+				newUser,
+			},
+		});
+	} catch (err) {
 		console.log("error from updateMyProfile : ", err);
 		res.status(500).json({
 			status: "error",
@@ -277,22 +291,24 @@ const getProfile = async (req, res) => {
 	/* 
 		we will get the user's name , username , email, bio , profilePic
 		*/
-		// we will fetchuser by either id or username which is query
-		const { query } = req.params;
-		if (!query) {
-			return res.status(400).json({
-				status: "fail",
-				error: "please provide username",
-			});
-		}
+	// we will fetchuser by either id or username which is query
+	const { query } = req.params;
+	if (!query) {
+		return res.status(400).json({
+			status: "fail",
+			error: "please provide username",
+		});
+	}
 	try {
-    let user ;
-		if(mongoose.Types.ObjectId.isValid(query))
-		{
-			user = await User.findById({_id : query}).select("-password").select('-updatedAt');
-		}
-		else{
-			user = await User.findOne({username : query}).select("-password").select('-updatedAt');
+		let user;
+		if (mongoose.Types.ObjectId.isValid(query)) {
+			user = await User.findById({ _id: query })
+				.select("-password")
+				.select("-updatedAt");
+		} else {
+			user = await User.findOne({ username: query })
+				.select("-password")
+				.select("-updatedAt");
 		}
 
 		if (!user) {
@@ -306,7 +322,7 @@ const getProfile = async (req, res) => {
 			status: "success",
 			message: "profile fetched successfully",
 			data: {
-				user
+				user,
 			},
 		});
 	} catch (err) {
@@ -317,7 +333,6 @@ const getProfile = async (req, res) => {
 		});
 	}
 };
-
 
 const forgotPassword = async (req, res) => {
 	//& bana nahi hai krna hai

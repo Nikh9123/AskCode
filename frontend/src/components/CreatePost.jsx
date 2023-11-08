@@ -21,9 +21,11 @@ import {
 import React, { useState } from "react";
 import usePreviewImg from "../hooks/userPreviewImg";
 import { BsFillImageFill } from "react-icons/bs";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
+import { useParams } from "react-router-dom";
+import postsAtom from "../atoms/postAtom";
 
 const maxCharTitle = 500;
 const maxCharDescription = 1500;
@@ -44,7 +46,7 @@ const CreatePost = () => {
 			backdropBlur="2px"
 		/>
 	);
-
+  const [posts , setPosts] = useRecoilState(postsAtom); //set the posts data in the component's state
 	const [loading, setLoading] = useState(false); // if the user is already updating the profile, don't do anything (prevent spamming the button) it will show loading spinner
 	const [postText, setPostText] = useState("");
 	const [postDescription, setPostDescription] = useState("");
@@ -53,9 +55,8 @@ const CreatePost = () => {
 	const [remainingErrorTitle, setRemainingChar] = useState(maxCharTitle); //limit the max char of the title to 500
 	const [remainingErrorDescription, setRemainingErrorDescription] =
 		useState(maxCharDescription); //limit the max char of the description to 1500
-
 	const [overlay, setOverlay] = React.useState(<OverlayOne />);
-
+  const {username} = useParams();
 	const imageRef = React.useRef(null);
 	const showToast = useShowToast(); // custom hook coming from hooks folder
 	const user = useRecoilValue(userAtom); //the logged in user data
@@ -103,7 +104,6 @@ const CreatePost = () => {
 				}),
 			});
 			const data = await res.json();
-			console.log(data);
 			if (data.error) {
 				console.log("error from handleCreatePost : ", data.error);
 				showToast("error", data.error, "error");
@@ -117,8 +117,14 @@ const CreatePost = () => {
 			onClose();
       setImgUrl(null);
       setPostText("");
+			if(username === user.username){
+				setPosts([data , ...posts]);
+
+			}
       setPostDescription("");
-      
+      //goto the user page
+			// navigate(`/${user.username}`);
+			// window.location.reload();
 		} catch (error) {
 			console.log("error from handleCreatePost : ", error);
 			showToast("error", error, "error");
@@ -134,14 +140,15 @@ const CreatePost = () => {
 				position={"fixed"}
 				bottom={10}
 				right={10}
-				size={"sm"}
+				//make size responsive
+				size={{ base: "sm", sm: "md" }}
 				leftIcon={<AddIcon />}
 				bg={useColorModeValue("gray.300", "gray.dark")}
 				onClick={() => {
 					setOverlay(<OverlayTwo />);
 					onOpen();
 				}}>
-				Got Error ?
+				Error ?
 			</Button>
 			<Modal isCentered isOpen={isOpen} onClose={onClose}>
 				{overlay}

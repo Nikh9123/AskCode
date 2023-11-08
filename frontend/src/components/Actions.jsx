@@ -14,23 +14,24 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
-import { is } from "date-fns/locale";
+import postsAtom from "../atoms/postAtom";
 
-const Actions = ({ post: _post }) => {
+const Actions = ({ post }) => {
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [reply , setReply] = useState(''); // reply is the answer to the question
   //if user is logged in and he has liked the post then set liked to true else false
-  const [post, setPost] = useState(_post); //_post is the post that is passed from the parent component
   const user = useRecoilValue(userAtom); //user is the user that is logged in
   const [liked, setLiked] = useState(
-    _post?.likes?.includes(user?._id) || false
+    post?.likes?.includes(user?._id) || false
   ); // if user is logged in and he has liked the post then set liked to true else false
   const [liking, setLiking] = useState(false); // to prevent multiple clicks on like button
   const [isReplying,setIsReplying] = useState(false); // to prevent multiple clicks on reply button
-	const showToast = useShowToast();
+	const [posts , setPosts] = useRecoilState(postsAtom); //set the posts data in the component's state
+  const showToast = useShowToast();
 
   const handleLikeAndUnlike = async () => {
     if (liking) return;
@@ -56,12 +57,23 @@ const Actions = ({ post: _post }) => {
         showToast("Error", data.error, "error");
       }
       if (liked) { // if already liked then unlike it
-        setPost({
-          ...post,
-          likes: post.likes.filter((like) => like !== user._id),
-        });
+        // setPosts({ ...post, likes: post.likes.filter((id) => id !== user._id) });
+        const updatesPost = posts.map((p)=>{
+          if(p._id === post._id){
+            return {...p , likes: p.likes.filter((id)=> id !== user._id)}
+          }
+          return p;
+        })
+        setPosts(updatesPost);
       } else {
-        setPost({ ...post, likes: [...post.likes, user._id] });
+        // setPosts({ ...post, likes: [...post.likes, user._id] });
+        const updatedPost = posts.map((p) =>{
+          if(p._id === post._id){
+            return {...p , likes: [...p.likes, user._id]}
+          }
+          return p;
+        })
+        setPosts(updatedPost);
       }
       setLiked(!liked);
     } catch (error) {
@@ -90,7 +102,7 @@ const Actions = ({ post: _post }) => {
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({ text: reply }),
+				body: JSON.stringify({ text: reply , username: user.username , userProfilePic: user.profilePic }),
 			});
 			const data = await res.json();
 			console.log(data);
@@ -98,10 +110,19 @@ const Actions = ({ post: _post }) => {
 				console.log("error : ", data.error);
 				showToast("Error", data.error, "error");
 			}
-			setPost({ ...post, replies: [...post.replies, data.reply] });
+      const updatedPost = posts.map((p) =>{
+        if(p._id === post._id){
+          console.log("p.replies : ", p.replies)
+          return {...p , replies: [...p.replies, data]}
+        }
+        return p;
+      })
+      setPosts(updatedPost);
+			showToast("Success", "Your answer posted successfully", "success");
 			setReply('');
 			onClose();
-			showToast("Success", "Your answer posted successfully", "success");
+      //render the reply in the post
+
 		} catch (error) {
 			console.log("error from HandleReply : ", error.message);
 			showToast("Error", error.message, "error");

@@ -23,15 +23,8 @@ const getAllPosts = async (req, res) => {
 const getPost = async (req, res) => {
 	const { postId } = req.params;
 	try {
-		const post = await Post.findById(postId).populate(
-			"postedBy",
-			"name username"
-		);
-		res.status(200).json({
-			status: "success",
-			message: "post fetched successfully",
-			data: post,
-		});
+		const post = await Post.findById(postId).sort({createdAt:-1});
+		res.status(200).json(post);
 	} catch (err) {
 		console.log("error from getPost : ", err.message);
 		res.status(400).json({
@@ -87,11 +80,7 @@ const createPost = async (req, res) => {
 		}
 		const newPost = new Post({ postedBy, text, img, errorDisc });
 		await newPost.save();
-		res.status(201).json({
-			status: "success",
-			message: "post created successfully",
-			data: newPost,
-		});
+		res.status(201).json(newPost);
 	} catch (err) {
 		console.log("error from createPost : ", err.message);
 		res.status(400).json({
@@ -108,7 +97,7 @@ const deletePost = async (req, res) => {
 
 		//only the person who created the post can delete it
 		const post = await Post.findById(postId);
-    
+
 		if (!post) {
 			res.status(404).json({
 				status: "Not found",
@@ -125,18 +114,17 @@ const deletePost = async (req, res) => {
 				error: "you can only delete your post",
 			});
 		}
-    
-		if(post.img){
+
+		if (post.img) {
 			const imgId = await post.img.split("/").pop().split(".")[0];
 			await cloudinary.uploader.destroy(imgId);
 		}
 		await Post.findByIdAndDelete(postId);
-    //send response
+		//send response
 		res.status(200).json({
-			status:'success',
-			message:'post deleted successfully'
-		})
-		
+			status: "success",
+			message: "post deleted successfully",
+		});
 	} catch (err) {
 		console.log("error from deletePost : ", err.message);
 		res.status(500).json({
@@ -199,7 +187,7 @@ const replyToPost = async (req, res) => {
 		const { text } = req.body;
 		const { postId } = req.params;
 		const userId = req.user._id.toString();
-		const profilePic = req.user.profilePic;
+		const userProfilePic = req.user.profilePic;
 		const username = req.user.username;
 
 		if (!text) {
@@ -217,20 +205,16 @@ const replyToPost = async (req, res) => {
 			});
 		}
 
-		const newReply = {
+		const reply = {
 			userId,
 			text,
-			profilePic,
+			userProfilePic,
 			username,
 		};
-		post.replies.push(newReply);
+		post.replies.push(reply);
 		await post.save();
 
-		res.status(201).json({
-			status: "success",
-			message: "reply added successfully",
-			data: post.replies,
-		});
+		res.status(201).json(reply);
 	} catch (err) {
 		console.error("Error from replyToPost: ", err.message);
 		res.status(500).json({
@@ -253,7 +237,10 @@ const getUserFeedPost = async (req, res) => {
 				error: "user not found",
 			});
 		}
-
+		//get user post
+		const userPosts = await Post.find({ postedBy: userId }).sort({
+			createdAt: -1,
+		});
 		//get all the users that the current user is following
 		const following = user.following;
 
@@ -305,16 +292,14 @@ const getUserPosts = async (req, res) => {
 		});
 	}
 
-	//4. get the posts of that user
-	const posts = await Post.find({ postedBy: user._id }).sort("-createdAt");
-		
-		if(!posts)
-		{
-			return res.status(404).json({
-				status: "fail",
-				error: "no posts found",
-			});
-		}
+	//4. get the posts of that user and the details of the user who posted it
+	const posts = await Post.find({ postedBy: user._id }).sort({ createdAt: -1 });
+	if (!posts) {
+		return res.status(404).json({
+			status: "fail",
+			error: "no posts found",
+		});
+	}
 
 	//5. return the posts
 	res.status(200).json(posts);
